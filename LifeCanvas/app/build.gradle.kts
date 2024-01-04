@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.ui:ui-text-android:1.5.4")
     kapt("androidx.room:room-compiler:2.4.2")
     implementation("androidx.room:room-runtime:2.4.2")
     implementation("androidx.room:room-ktx:2.4.2")
