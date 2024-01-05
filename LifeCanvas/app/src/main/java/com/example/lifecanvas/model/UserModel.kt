@@ -1,4 +1,4 @@
-package com.example.lifecanvas
+package com.example.lifecanvas.model
 
 data class UserModel(
     var firstName: String,

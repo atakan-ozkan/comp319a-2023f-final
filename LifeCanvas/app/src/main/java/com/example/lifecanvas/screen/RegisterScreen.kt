@@ -1,4 +1,4 @@
-package com.example.lifecanvas
+package com.example.lifecanvas.screen
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +33,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.lifecanvas.R
+import com.example.lifecanvas.UserPreferencesManager
+import com.example.lifecanvas.viewModel.UserViewModel
 
 @Composable
 fun WelcomeScreen(navController: NavHostController) {
