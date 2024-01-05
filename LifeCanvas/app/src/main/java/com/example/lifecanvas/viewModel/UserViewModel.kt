@@ -1,11 +1,16 @@
-package com.example.lifecanvas
+package com.example.lifecanvas.viewModel
 
 import androidx.lifecycle.ViewModel
+import com.example.lifecanvas.model.UserModel
 
 class UserViewModel : ViewModel() {
-    private var userModel: UserModel =UserModel("", "", "")
+    private var userModel: UserModel = UserModel("", "", "")
     fun initUser(firstName: String, lastName: String, password: String) {
         userModel = UserModel(firstName, lastName, hashPassword(password))
+    }
+
+    fun getFirstName(): String{
+        return userModel.firstName
     }
 
     fun updateFullName(firstName: String, lastName: String) {
@@ -25,7 +30,7 @@ class UserViewModel : ViewModel() {
         return password.hashCode().toString()
     }
 
-    fun getUserModel (): UserModel{
+    fun getUserModel (): UserModel {
         return userModel
     }
 }
