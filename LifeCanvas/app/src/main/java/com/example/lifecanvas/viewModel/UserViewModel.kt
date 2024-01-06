@@ -60,4 +60,8 @@ class UserViewModel : ViewModel() {
     fun getUserModel (): UserModel {
         return userModel
     }
+
+    fun resetUser(){
+        userModel = UserModel("", "", "",ByteArray(16))
+    }
 }

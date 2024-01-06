@@ -1,25 +1,17 @@
 package com.example.lifecanvas.screen
 
-import android.annotation.SuppressLint
-import android.app.DatePickerDialog
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -27,20 +19,16 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -53,8 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -67,8 +53,6 @@ import com.example.lifecanvas.R
 import com.example.lifecanvas.model.NoteModel
 import com.example.lifecanvas.viewModel.NoteViewModel
 import com.example.lifecanvas.viewModel.UserViewModel
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -172,155 +156,6 @@ fun NotesScreen(noteViewModel: NoteViewModel, userViewModel: UserViewModel,navCo
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBar(
-    searchText: String,
-    onSearchTextChanged: (String) -> Unit,
-    onSearchButtonClicked: () -> Unit
-) {
-    OutlinedTextField(
-        value = searchText,
-        onValueChange = onSearchTextChanged,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        label = { Text("Search Notes") },
-        trailingIcon = {
-            IconButton(
-                onClick = { onSearchButtonClicked() },
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Icon(Icons.Default.Search, contentDescription = null)
-            }
-        }
-    )
-}
-@Composable
-fun ExpandableFilterPanel(
-    onResetFilters: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column {
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-        )
-        Button(
-            onClick = { expanded = !expanded },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Text(if (expanded) "Hide Filters" else "Advanced Filter")
-        }
-
-        AnimatedVisibility(visible = expanded) {
-            Column(modifier = Modifier.padding(8.dp), content = content)
-        }
-
-        if (expanded) {
-            Button(
-                onClick = onResetFilters,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text("Reset")
-            }
-        }
-    }
-}
-
-
-@Composable
-fun PublicPrivateToggleFilter(isPublicFilter: Boolean?, onValueChange: (Boolean?) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Private")
-        Switch(
-            checked = isPublicFilter ?: false,
-            onCheckedChange = onValueChange
-        )
-        Text("Public")
-    }
-}
-@SuppressLint("SimpleDateFormat")
-@Composable
-fun DatePicker(
-    label: String,
-    selectedDate: Date?,
-    icon: ImageVector,
-    onDateSelected: (Date?) -> Unit
-) {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-
-    selectedDate?.let {
-        calendar.time = it
-    }
-
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-    val datePickerDialog = DatePickerDialog(context, { _, year, month, dayOfMonth ->
-            val newDate = Calendar.getInstance()
-            newDate.set(year, month, dayOfMonth)
-            onDateSelected(newDate.time)
-        }, year, month, day)
-
-    var formatted =selectedDate?.toString() ?: label
-    if(selectedDate!= null){
-        val formatter = SimpleDateFormat("yyyy.MM.dd")
-        formatted = formatter.format(selectedDate)
-    }
-
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clickable { datePickerDialog.show() }
-            .padding(16.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = formatted
-        )
-    }
-}
-
-@Composable
-fun NoteTypeDropdownFilter(noteTypeFilter: String?, onTypeSelected: (String?) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    val noteTypes = listOf("All", "Text", "Voice", "Image")
-
-    Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
-        Text(
-            text = noteTypeFilter ?: "Select Type",
-            modifier = Modifier
-                .clickable { expanded = true }
-                .padding(16.dp)
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            noteTypes.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(type) },
-                    onClick = {
-                        expanded = false
-                        onTypeSelected(if (type == "All") null else type)
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun NotesList(notes: LiveData<List<NoteModel>>, userViewModel: UserViewModel,navController: NavController) {
@@ -402,6 +237,7 @@ fun AddNoteDialog(
     var title by remember { mutableStateOf("") }
     var isPrivate by remember { mutableStateOf(false) }
     val currentDateTime = remember { Date() }
+    val isTitleValid = remember(title) { isValidTitle(title) }
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -411,8 +247,12 @@ fun AddNoteDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title") }
+                    label = { Text("Title") },
+                    isError = !isTitleValid && title.isNotEmpty()
                 )
+                if (!isTitleValid && title.isNotEmpty()) {
+                    Text("Title must be at least 3 characters and start with a letter.", color = MaterialTheme.colorScheme.secondary)
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = isPrivate,
@@ -437,7 +277,8 @@ fun AddNoteDialog(
                         )
                     )
                     onDismiss()
-                }
+                },
+                enabled = isTitleValid
             ) {
                 Text("Create")
             }
