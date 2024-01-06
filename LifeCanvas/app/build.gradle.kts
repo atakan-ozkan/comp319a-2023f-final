@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -55,6 +53,7 @@ android {
 dependencies {
     implementation("androidx.compose.ui:ui-text-android:1.5.4")
     kapt("androidx.room:room-compiler:2.4.2")
+    implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
     implementation("androidx.room:room-runtime:2.4.2")
     implementation("androidx.room:room-ktx:2.4.2")
     implementation("androidx.core:core-ktx:1.9.0")

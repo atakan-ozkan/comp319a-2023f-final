@@ -1,6 +1,8 @@
 package com.example.lifecanvas.screen
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,7 +82,10 @@ fun RegisterScreen(
         )
         when (currentStep) {
             1 -> NameSurnameStep(userViewModel) { currentStep = 2 }
-            2 -> SetPasswordStep(userViewModel) { currentStep = 3 }
+            2 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                SetPasswordStep(userViewModel) { currentStep = 3 }
+            }
+
             3 -> TermsAndConditionsStep{ currentStep = 4 }
         }
     }
@@ -143,6 +149,7 @@ fun NameSurnameStep(userViewModel: UserViewModel, onNextStep: () -> Unit) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetPasswordStep(userViewModel: UserViewModel, onNextStep: () -> Unit) {
@@ -171,7 +178,7 @@ fun SetPasswordStep(userViewModel: UserViewModel, onNextStep: () -> Unit) {
                 else
                     R.drawable.visibility_off_icon
 
-                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }, modifier = Modifier.size(20.dp)) {
                     Icon(painterResource(image), "Toggle password visibility")
                 }
             }
@@ -203,7 +210,18 @@ fun TermsAndConditionsStep(onFinish: () -> Unit ) {
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = " bla bla bla bla bla bla bla bla bla bla")
+        Text(
+            text = """
+                           Terms and Conditions
+                    
+                         By using this mobile app, you agree to the following terms:
+                    
+                         License: You are allowed to download and use this app on your mobile device for personal, non-commercial use. Please follow the app's instructions.
+                    
+                         What You Can't Do: You cannot copy, modify, or attempt to understand the app's code. You also cannot remove trademarks or share the app with others.
+                    
+                         Please read this carefully. If you don't agree, do not use the app.
+                    """.trimIndent(), color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(4.dp))
         Checkbox(
             checked = isAgreed,

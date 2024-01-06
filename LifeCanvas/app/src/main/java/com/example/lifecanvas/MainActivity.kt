@@ -19,6 +19,7 @@ import androidx.room.Room
 import com.example.lifecanvas.database.AppDatabase
 import com.example.lifecanvas.repository.NoteRepository
 import com.example.lifecanvas.screen.MainScreen
+import com.example.lifecanvas.screen.NoteDetailScreen
 import com.example.lifecanvas.screen.NotesScreen
 import com.example.lifecanvas.screen.RegisterScreen
 import com.example.lifecanvas.screen.WelcomeScreen
@@ -64,7 +65,13 @@ class MainActivity : ComponentActivity() {
             composable("welcomeScreen") { WelcomeScreen(navController) }
             composable("registerScreen") { RegisterScreen(navController, userViewModel,userPreferencesManager,context) }
             composable("mainScreen"){ MainScreen(navController, userViewModel) }
-            composable("notesScreen"){ NotesScreen(noteViewModel,navController) }
+            composable("notesScreen"){ NotesScreen(noteViewModel,userViewModel,navController) }
+            composable("noteDetailScreen/{noteId}") { backStackEntry ->
+                val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull() ?: return@composable
+                val note = noteViewModel.get(noteId).value ?: return@composable
+                NoteDetailScreen(noteViewModel, note, navController)
+            }
+
         }
     }
 
