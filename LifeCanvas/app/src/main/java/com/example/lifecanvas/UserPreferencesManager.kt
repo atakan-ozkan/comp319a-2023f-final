@@ -1,6 +1,7 @@
 package com.example.lifecanvas
 
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import com.example.lifecanvas.model.UserModel
 import com.example.lifecanvas.viewModel.UserViewModel
@@ -25,7 +26,9 @@ class UserPreferencesManager {
 
         val userModel = gson.fromJson(userJson, UserModel::class.java)
         if (userModel != null) {
-            userViewModel.initUser(userModel.firstName,userModel.lastName,userModel.passwordHash)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                userViewModel.initUser(userModel.firstName,userModel.lastName,userModel.passwordHash)
+            }
             return true
         }
         return false
