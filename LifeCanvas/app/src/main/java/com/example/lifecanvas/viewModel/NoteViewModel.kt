@@ -27,6 +27,7 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     fun update(note: NoteModel) {
         viewModelScope.launch {
+            note.modifiedDate = Date()
             repository.update(note)
         }
     }

@@ -1,6 +1,5 @@
 package com.example.lifecanvas.repository
 
-import androidx.lifecycle.LiveData
 import com.example.lifecanvas.dao.NoteDao
 import com.example.lifecanvas.model.NoteModel
 import java.util.Date

@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -41,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +58,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lifecanvas.R
 import com.example.lifecanvas.audio.AudioRecorder
+import com.example.lifecanvas.helper.deleteBitmapFile
+import com.example.lifecanvas.helper.loadImageBitmap
 import com.example.lifecanvas.model.NoteModel
 import com.example.lifecanvas.viewModel.NoteViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -65,35 +69,65 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteDetailScreen(noteViewModel: NoteViewModel, note: NoteModel, navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text("Note Detail") },
-            navigationIcon = {
-                IconButton(
-                    onClick = {
-                        navController.navigate("notesScreen")
-                    }
-                ) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                }
-            }
-        )
+fun NoteDetailScreen(noteViewModel: NoteViewModel, noteId: Int, navController: NavController,context: Context) {
+    val noteModel by noteViewModel.get(noteId).observeAsState()
+    if(noteModel == null){
+        Text(text = "Note Detail Not Found!")
+        return
+    }
 
-        when (note.type) {
-            "Text" -> TextFieldNoteScreen(
-                noteContent = note.content,
-                onContentChange = { updatedContent ->
-                    noteViewModel.update(note.copy(content = updatedContent))
+    noteModel?.let { note ->
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("Note Detail") },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            navController.navigate("notesScreen")
+                        }
+                    ) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick ={
+                            if(note.type == "Image"){
+                                note.filePath?.let { deleteBitmapFile(it) }
+                                Toast.makeText(context, "Image note is deleted!", Toast.LENGTH_SHORT).show()
+                            }
+                            else if(note.type == "Voice"){
+                                File(note.filePath).delete()
+                                Toast.makeText(context, "Voice note is deleted!", Toast.LENGTH_SHORT).show()
+                            }
+                            else
+                            {
+                                Toast.makeText(context, "Text note is deleted!", Toast.LENGTH_SHORT).show()
+                            }
+                            noteViewModel.delete(note)
+                            navController.navigate("notesScreen")
+                        }) {
+                        Icon(painter = painterResource(id = R.drawable.delete_icon), contentDescription = "Delete")
+                    }
                 }
             )
-            "Voice" -> VoiceRecordNoteScreen(noteViewModel,note,navController)
-            "Image" -> ImageNoteScreen(noteViewModel, note)
-            else -> Text("Unknown note type, please go back!")
+
+            when (note.type) {
+                "Text" -> TextFieldNoteScreen(
+                    noteContent = note.content,
+                    onContentChange = { updatedContent ->
+                        noteViewModel.update(note.copy(content = updatedContent))
+                    }
+                )
+                "Voice" -> VoiceRecordNoteScreen(noteViewModel, note, navController)
+                "Image" -> ImageNoteScreen(noteViewModel, note)
+                else -> Text("Unknown note type, please go back!")
+            }
         }
     }
 }
@@ -200,7 +234,7 @@ fun VoiceRecorderUI(noteViewModel: NoteViewModel, note: NoteModel, navController
             }
         }
     }
-    Column {
+    Column(modifier = Modifier.fillMaxSize()) {
         Row (
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
@@ -213,7 +247,8 @@ fun VoiceRecorderUI(noteViewModel: NoteViewModel, note: NoteModel, navController
         Spacer(modifier = Modifier.padding(16.dp))
         Row (
 
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ){
             Button(
@@ -321,6 +356,7 @@ fun ImageUploadSection(onImageSelected: () -> Unit) {
                 PermissionStatus.Granted -> {
                     onImageSelected()
                 }
+
                 else -> {
                     permissionsState.launchPermissionRequest()
                 }
@@ -354,8 +390,4 @@ fun uriToFilePath(uri: Uri, context: Context): String? {
     }
     return null
 }
-fun loadImageBitmap(filePath: String?): Bitmap? {
-    return filePath?.let {
-        BitmapFactory.decodeFile(it)
-    }
-}
+
