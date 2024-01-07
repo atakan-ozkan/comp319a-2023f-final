@@ -1,4 +1,4 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.sketch
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton

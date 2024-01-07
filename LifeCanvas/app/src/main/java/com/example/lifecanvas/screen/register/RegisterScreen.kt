@@ -1,4 +1,4 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.register
 
 import android.content.Context
 import android.os.Build

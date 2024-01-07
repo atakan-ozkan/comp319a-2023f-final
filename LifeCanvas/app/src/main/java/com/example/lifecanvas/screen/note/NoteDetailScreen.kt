@@ -1,12 +1,10 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.note
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
@@ -174,20 +172,20 @@ fun VoiceRecordNoteScreen(noteViewModel: NoteViewModel, note: NoteModel, navCont
             AlertDialog(
                 onDismissRequest = {},
                 title = { Text("Permission Required") },
-                text = { Text("This app requires access to your microphone and storage to record audio.") },
+                text = { Text("This app needs access to your microphone and storage to record audio.") },
                 confirmButton = {
                     Button(onClick = {
                         coroutineScope.launch {
                             permissionsState.launchMultiplePermissionRequest()
                         }
                     }) {
-                        Text("Ok")
+                        Text("OK")
                     }
                 }
             )
         }
         else -> {
-            Text("Permissions were not granted. The app cannot record audio without these permissions.")
+            Text("Permissions were not granted. You cannot record audio without permissions!")
         }
     }
 }
