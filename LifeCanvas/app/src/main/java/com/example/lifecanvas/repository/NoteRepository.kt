@@ -1,7 +1,11 @@
 package com.example.lifecanvas.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.lifecanvas.dao.NoteDao
 import com.example.lifecanvas.model.NoteModel
+import kotlinx.coroutines.launch
 import java.util.Date
 
 class NoteRepository(private val noteDao: NoteDao) {
@@ -20,6 +24,10 @@ class NoteRepository(private val noteDao: NoteDao) {
 
     fun delete(note: NoteModel) {
         noteDao.delete(note)
+    }
+
+    fun isTitleUsed(title: String, excludeNoteId: Int? = null): Int {
+        return noteDao.isTitleUsed(title,excludeNoteId)
     }
 
     fun deleteAllNotes() {

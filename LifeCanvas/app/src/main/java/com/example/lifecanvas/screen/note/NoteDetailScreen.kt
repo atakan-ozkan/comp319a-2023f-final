@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,7 +35,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -59,6 +62,7 @@ import com.example.lifecanvas.audio.AudioRecorder
 import com.example.lifecanvas.helper.deleteBitmapFile
 import com.example.lifecanvas.helper.loadImageBitmap
 import com.example.lifecanvas.model.NoteModel
+import com.example.lifecanvas.screen.filter.isValidTitle
 import com.example.lifecanvas.viewModel.NoteViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -68,12 +72,14 @@ import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(noteViewModel: NoteViewModel, noteId: Int, navController: NavController,context: Context) {
     val noteModel by noteViewModel.get(noteId).observeAsState()
+    var showEditNoteDialog by remember { mutableStateOf(false) }
     if(noteModel == null){
         Text(text = "Note Detail Not Found!")
         return
@@ -93,6 +99,12 @@ fun NoteDetailScreen(noteViewModel: NoteViewModel, noteId: Int, navController: N
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick ={
+                            showEditNoteDialog = true
+                        }) {
+                        Icon(Icons.Default.Create, contentDescription = "Edit Title")
+                    }
                     IconButton(
                         onClick ={
                             if(note.type == "Image"){
@@ -125,6 +137,19 @@ fun NoteDetailScreen(noteViewModel: NoteViewModel, noteId: Int, navController: N
                 "Voice" -> VoiceRecordNoteScreen(noteViewModel, note, navController)
                 "Image" -> ImageNoteScreen(noteViewModel, note)
                 else -> Text("Unknown note type, please go back!")
+            }
+
+            if (showEditNoteDialog) {
+                EditNoteDialog(
+                    note = note,
+                    noteViewModel =noteViewModel,
+                    onDismiss = { showEditNoteDialog = false },
+                    onNoteEdited = { editedNote ->
+                        noteViewModel.update(editedNote)
+                        showEditNoteDialog = false
+                        Toast.makeText(context, "Note is modified!", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
         }
     }
@@ -389,3 +414,81 @@ fun uriToFilePath(uri: Uri, context: Context): String? {
     return null
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditNoteDialog(
+    note: NoteModel,
+    noteViewModel: NoteViewModel,
+    onDismiss: () -> Unit,
+    onNoteEdited: (NoteModel) -> Unit
+) {
+    var title by remember { mutableStateOf(note.title) }
+    var isPublic by remember { mutableStateOf(note.isPublic) }
+    val currentDateTime = remember { Date() }
+    val isTitleValid = remember(title) { isValidTitle(title) }
+    val isTitleUsedLiveData = noteViewModel.isTitleUsed(title,note.id)
+    val isTitleUsed by isTitleUsedLiveData.observeAsState(initial = false)
+    val isEditButtonEnabled = isTitleValid && !isTitleUsed ||
+            (isTitleValid && isTitleUsed && title == note.title)
+
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Edit Note") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    isError = (!isTitleValid && title.isNotEmpty()) || (isTitleUsed && title != note.title)
+                )
+                if (!isTitleValid && title.isNotEmpty()) {
+                    Text("Title must be at least 3 characters and start with a letter.", color = MaterialTheme.colorScheme.secondary)
+                } else if (isTitleUsed && title != note.title) {
+                    Text("Title name is already used!", color = MaterialTheme.colorScheme.secondary)
+                }
+                if(isPublic){
+                    Text("Current note visibility is public.", color = MaterialTheme.colorScheme.primary)
+                }
+                else{
+                    Text("Current note visibility is private.", color = MaterialTheme.colorScheme.primary)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Switch(
+                        checked = isPublic,
+                        onCheckedChange = { isPublic = it }
+                    )
+                    Text("Change visibility ")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onNoteEdited(
+                        note.copy(
+                            type = note.type,
+                            title = title,
+                            content = note.content,
+                            isPublic = isPublic,
+                            filePath = note.filePath,
+                            createdDate = note.createdDate,
+                            modifiedDate = currentDateTime
+                        )
+                    )
+                    onDismiss()
+                },
+                enabled = isEditButtonEnabled
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
+}

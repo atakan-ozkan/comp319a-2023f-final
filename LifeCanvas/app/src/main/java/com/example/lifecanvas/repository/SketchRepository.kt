@@ -24,6 +24,10 @@ class SketchRepository(private val sketchDAO: SketchDao) {
     fun delete(sketch: SketchModel) {
         sketchDAO.delete(sketch)
     }
+
+    fun isTitleUsed(title: String, excludeNoteId: Int? = null): Int {
+        return sketchDAO.isTitleUsed(title,excludeNoteId)
+    }
     fun searchSketches(
         searchQuery: String,
         createdDateStart: Date?,
