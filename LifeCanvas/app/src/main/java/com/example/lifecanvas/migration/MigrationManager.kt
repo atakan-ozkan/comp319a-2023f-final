@@ -10,5 +10,22 @@ class MigrationManager {
                 database.execSQL("CREATE TABLE IF NOT EXISTS `sketches` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `filePath` TEXT, `createdDate` INTEGER NOT NULL, `modifiedDate` INTEGER NOT NULL)")
             }
         }
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create the events table
+                database.execSQL("""
+            CREATE TABLE IF NOT EXISTS `events` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `title` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `startTime` INTEGER NOT NULL,
+                `endTime` INTEGER NOT NULL,
+                `createdDate` INTEGER NOT NULL,
+                `modifiedDate` INTEGER NOT NULL
+            )
+        """)
+            }
+        }
     }
+
 }

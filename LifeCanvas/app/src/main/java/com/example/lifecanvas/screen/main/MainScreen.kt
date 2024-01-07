@@ -1,10 +1,11 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.main
 
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -74,8 +75,9 @@ fun MainScreen(navController: NavHostController,
     ) {
             innerPadding ->
         Column(modifier = Modifier.padding(innerPadding),verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Spacer(modifier = Modifier.height(40.dp))
             FeatureCard(featureName = "Notes", onClick = { navController.navigate("notesScreen") })
-            FeatureCard(featureName = "Calendar", onClick = { navController.navigate("calendarScreen")})
+            FeatureCard(featureName = "Calendar and Events", onClick = { navController.navigate("calendarScreen")})
             FeatureCard(featureName = "Sketch", onClick = { navController.navigate("sketchesScreen")})
             if(agreeAlertDialog){
                 ShowAgreeAlert(
@@ -105,7 +107,7 @@ fun FeatureCard(featureName: String, onClick: () -> Unit) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(text = featureName, style = MaterialTheme.typography.bodyMedium)
+            Text(text = featureName, style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Center))
         }
     }
 }

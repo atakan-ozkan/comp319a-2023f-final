@@ -1,4 +1,4 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.filter
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
