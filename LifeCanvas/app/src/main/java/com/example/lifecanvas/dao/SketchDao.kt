@@ -25,6 +25,10 @@ interface SketchDao {
     @Delete
     fun delete(sketch: SketchModel)
 
+    @Query("SELECT COUNT(*) FROM sketches WHERE title = :title AND (:excludeNoteId IS NULL OR id != :excludeNoteId)")
+    fun isTitleUsed(title: String, excludeNoteId: Int?): Int
+
+
     @Query("""
     SELECT * FROM sketches 
     WHERE title LIKE :searchQuery

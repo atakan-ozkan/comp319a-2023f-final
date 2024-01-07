@@ -22,6 +22,9 @@ interface NoteDao {
     @Delete
     fun delete(note: NoteModel)
 
+    @Query("SELECT COUNT(*) FROM notes WHERE title = :title AND (:excludeNoteId IS NULL OR id != :excludeNoteId)")
+    fun isTitleUsed(title: String, excludeNoteId: Int?): Int
+
     @Query("DELETE FROM notes")
     fun deleteAllNotes()
 
