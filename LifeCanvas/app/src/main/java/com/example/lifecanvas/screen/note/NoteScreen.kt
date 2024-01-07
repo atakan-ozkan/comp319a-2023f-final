@@ -1,4 +1,4 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.note
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -51,6 +51,12 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.lifecanvas.R
 import com.example.lifecanvas.model.NoteModel
+import com.example.lifecanvas.screen.filter.DatePicker
+import com.example.lifecanvas.screen.filter.ExpandableFilterPanel
+import com.example.lifecanvas.screen.filter.NoteTypeDropdownFilter
+import com.example.lifecanvas.screen.filter.PublicPrivateToggleFilter
+import com.example.lifecanvas.screen.filter.SearchBar
+import com.example.lifecanvas.screen.filter.isValidTitle
 import com.example.lifecanvas.viewModel.NoteViewModel
 import com.example.lifecanvas.viewModel.UserViewModel
 import java.util.Date
