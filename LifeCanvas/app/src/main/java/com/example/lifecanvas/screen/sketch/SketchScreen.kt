@@ -123,6 +123,7 @@ fun SketchScreen(sketchViewModel: SketchViewModel, userViewModel: UserViewModel,
             if (showAddNoteDialog) {
                 AddSketchDialog(
                     onDismiss = { showAddNoteDialog = false },
+                    sketchViewModel= sketchViewModel,
                     onSketchAdded = { sketch ->
                         sketchViewModel.insert(sketch)
                         showAddNoteDialog = false
@@ -138,11 +139,15 @@ fun SketchScreen(sketchViewModel: SketchViewModel, userViewModel: UserViewModel,
 @Composable
 fun AddSketchDialog(
     onDismiss: () -> Unit,
+    sketchViewModel: SketchViewModel,
     onSketchAdded: (SketchModel) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     val currentDateTime = remember { Date() }
     val isTitleValid = remember(title) { isValidTitle(title) }
+    val isTitleUsedLiveData = sketchViewModel.isTitleUsed(title)
+    val isTitleUsed by isTitleUsedLiveData.observeAsState(initial = false)
+    val isCreateButtonEnabled = isTitleValid && !isTitleUsed
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -153,10 +158,12 @@ fun AddSketchDialog(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
-                    isError = !isTitleValid && title.isNotEmpty()
+                    isError = (!isTitleValid && title.isNotEmpty()) || isTitleUsed
                 )
                 if (!isTitleValid && title.isNotEmpty()) {
                     Text("Title must be at least 3 characters and start with a letter.", color = MaterialTheme.colorScheme.secondary)
+                } else if (isTitleUsed) {
+                    Text("Title name is already used!", color = MaterialTheme.colorScheme.secondary)
                 }
             }
         },
@@ -173,7 +180,7 @@ fun AddSketchDialog(
                     )
                     onDismiss()
                 },
-                enabled = isTitleValid
+                enabled = isCreateButtonEnabled
             ) {
                 Text("Create")
             }

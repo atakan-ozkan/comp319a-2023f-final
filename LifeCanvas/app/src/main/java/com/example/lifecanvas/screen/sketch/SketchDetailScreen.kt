@@ -17,12 +17,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,9 +57,13 @@ import com.example.lifecanvas.R
 import com.example.lifecanvas.helper.*
 import com.example.lifecanvas.helper.loadImageBitmap
 import com.example.lifecanvas.model.DrawingPathModel
+import com.example.lifecanvas.model.NoteModel
 import com.example.lifecanvas.model.SketchModel
+import com.example.lifecanvas.screen.filter.isValidTitle
+import com.example.lifecanvas.screen.note.EditNoteDialog
 import com.example.lifecanvas.viewModel.SketchViewModel
 import java.io.File
+import java.util.Date
 
 @Composable
 fun SketchDetailScreen(
@@ -74,6 +84,7 @@ fun SketchDetailScreen(
     val density = LocalDensity.current
     val screenWidth = with(density) { configuration.screenWidthDp.dp.toPx() }
     val screenHeight = with(density) { configuration.screenHeightDp.dp.toPx() }
+    var showEditSketchDialog by remember { mutableStateOf(false) }
 
 
     Box {
@@ -108,6 +119,9 @@ fun SketchDetailScreen(
                         navController.navigate("sketchesScreen")
                     }
                            }
+                , onEdit = {
+                    showEditSketchDialog = true
+                }
             )
 
         }
@@ -144,6 +158,20 @@ fun SketchDetailScreen(
                 }
             )
         }
+        if (showEditSketchDialog) {
+            sketch?.let {
+                EditSketchDialog(
+                    sketch = it,
+                    sketchViewModel = sketchViewModel,
+                    onDismiss = { showEditSketchDialog = false },
+                    onSketchEdited = { editedSketch ->
+                        sketchViewModel.update(editedSketch)
+                        showEditSketchDialog = false
+                        Toast.makeText(context, "Sketch title is modified!", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -153,7 +181,8 @@ fun SketchDetailScreen(
 fun SketchDetailContent(
     sketch: SketchModel?,
     onBack: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -172,6 +201,10 @@ fun SketchDetailContent(
                 }
             },
             actions = {
+                IconButton(
+                    onClick = {onEdit()}) {
+                    Icon(Icons.Default.Create, contentDescription = "Edit Title")
+                }
                 IconButton(onClick = onDelete) {
                     Icon(painter = painterResource(id = R.drawable.delete_icon), contentDescription = "Delete")
                 }
@@ -266,4 +299,64 @@ fun CanvasFeatures(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditSketchDialog(
+    sketch: SketchModel,
+    sketchViewModel: SketchViewModel,
+    onDismiss: () -> Unit,
+    onSketchEdited: (SketchModel) -> Unit
+) {
+    var title by remember { mutableStateOf(sketch.title) }
+    val currentDateTime = remember { Date() }
+    val isTitleValid = remember(title) { isValidTitle(title) }
+    val isTitleUsedLiveData = sketchViewModel.isTitleUsed(title,sketch.id)
+    val isTitleUsed by isTitleUsedLiveData.observeAsState(initial = false)
+    val isEditButtonEnabled = isTitleValid && !isTitleUsed ||
+            (isTitleValid && isTitleUsed && title == sketch.title)
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Edit Sketch Title") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    isError = (!isTitleValid && title.isNotEmpty()) || (isTitleUsed && title != sketch.title)
+                )
+                if (!isTitleValid && title.isNotEmpty()) {
+                    Text("Title must be at least 3 characters and start with a letter.", color = MaterialTheme.colorScheme.secondary)
+                } else if (isTitleUsed && title != sketch.title) {
+                    Text("Title name is already used!", color = MaterialTheme.colorScheme.secondary)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSketchEdited(
+                        sketch.copy(
+                            title = title,
+                            filePath =sketch.filePath,
+                            createdDate = sketch.createdDate,
+                            modifiedDate = currentDateTime
+                        )
+                    )
+                    onDismiss()
+                },
+                enabled = isEditButtonEnabled
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
 }

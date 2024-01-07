@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.navigation.NavController
 import com.example.lifecanvas.R
 import com.example.lifecanvas.model.NoteModel
@@ -151,6 +152,7 @@ fun NotesScreen(noteViewModel: NoteViewModel, userViewModel: UserViewModel,navCo
             if (showAddNoteDialog) {
                 AddNoteDialog(
                     noteType = selectedNoteType,
+                    noteViewModel = noteViewModel,
                     onDismiss = { showAddNoteDialog = false },
                     onNoteAdded = { note ->
                         noteViewModel.insert(note)
@@ -237,6 +239,7 @@ fun NoteItem(note: NoteModel, userViewModel: UserViewModel,navController: NavCon
 @Composable
 fun AddNoteDialog(
     noteType: String,
+    noteViewModel: NoteViewModel,
     onDismiss: () -> Unit,
     onNoteAdded: (NoteModel) -> Unit
 ) {
@@ -244,6 +247,9 @@ fun AddNoteDialog(
     var isPrivate by remember { mutableStateOf(false) }
     val currentDateTime = remember { Date() }
     val isTitleValid = remember(title) { isValidTitle(title) }
+    val isTitleUsedLiveData = noteViewModel.isTitleUsed(title)
+    val isTitleUsed by isTitleUsedLiveData.observeAsState(initial = false)
+    val isCreateButtonEnabled = isTitleValid && !isTitleUsed
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -254,10 +260,12 @@ fun AddNoteDialog(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
-                    isError = !isTitleValid && title.isNotEmpty()
+                    isError = (!isTitleValid && title.isNotEmpty()) || isTitleUsed
                 )
                 if (!isTitleValid && title.isNotEmpty()) {
                     Text("Title must be at least 3 characters and start with a letter.", color = MaterialTheme.colorScheme.secondary)
+                } else if (isTitleUsed) {
+                    Text("Title name is already used!", color = MaterialTheme.colorScheme.secondary)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
@@ -284,7 +292,7 @@ fun AddNoteDialog(
                     )
                     onDismiss()
                 },
-                enabled = isTitleValid
+                enabled = isCreateButtonEnabled
             ) {
                 Text("Create")
             }
@@ -303,7 +311,7 @@ fun AddNoteFloatingActionButton(onAddNoteTypeSelected: (String) -> Unit) {
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)
+        .padding(10.dp)
         .zIndex(1f), contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
@@ -332,7 +340,7 @@ fun NoteTypeButton(type: String, onClick: () -> Unit) {
         onClick = onClick,
         contentColor = MaterialTheme.colorScheme.primary,
         modifier = Modifier
-            .padding(8.dp)
+            .padding(16.dp)
             .zIndex(1f)
     ) {
         Text(type, style = MaterialTheme.typography.labelMedium)

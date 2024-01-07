@@ -40,6 +40,14 @@ class SketchViewModel(private val repository: SketchRepository) : ViewModel() {
         repository.delete(sketch)
     }
 
+    fun isTitleUsed(title: String, excludeNoteId: Int? = null): LiveData<Boolean> {
+        val liveData = MutableLiveData<Boolean>()
+        viewModelScope.launch {
+            liveData.value = repository.isTitleUsed(title, excludeNoteId) > 0
+        }
+        return liveData
+    }
+
     fun searchSketchesWithFilters(
         searchText: String,
         createdDateStart: Date? = null,
