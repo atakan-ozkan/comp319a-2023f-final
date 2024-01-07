@@ -1,4 +1,4 @@
-package com.example.lifecanvas.screen
+package com.example.lifecanvas.screen.sketch
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +41,10 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.lifecanvas.model.SketchModel
+import com.example.lifecanvas.screen.filter.DatePicker
+import com.example.lifecanvas.screen.filter.ExpandableFilterPanel
+import com.example.lifecanvas.screen.filter.SearchBar
+import com.example.lifecanvas.screen.filter.isValidTitle
 import com.example.lifecanvas.viewModel.SketchViewModel
 import com.example.lifecanvas.viewModel.UserViewModel
 import java.util.Date
