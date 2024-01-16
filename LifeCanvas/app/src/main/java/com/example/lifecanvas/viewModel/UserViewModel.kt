@@ -9,15 +9,16 @@ import java.security.SecureRandom
 import java.util.Base64
 
 class UserViewModel : ViewModel() {
-    private var userModel: UserModel = UserModel("", "", "",ByteArray(16))
+    private var userModel: UserModel = UserModel("", "", "",ByteArray(16),false)
     @RequiresApi(Build.VERSION_CODES.O)
-    fun initUser(firstName: String, lastName: String, password: String) {
+    fun initUser(firstName: String, lastName: String, password: String,isDarkThemeOn: Boolean) {
         val salt = generateSalt()
         userModel = UserModel(
             firstName = firstName,
             lastName = lastName,
             passwordHash = hashPassword(password, salt),
-            salt = salt
+            salt = salt,
+            isDarkThemeOn =isDarkThemeOn
         )
     }
 
@@ -28,6 +29,10 @@ class UserViewModel : ViewModel() {
     fun updateFullName(firstName: String, lastName: String) {
         userModel.firstName = firstName
         userModel.lastName = lastName
+    }
+
+    fun updateUserThemePreference(isDarkThemeOn: Boolean){
+        userModel.isDarkThemeOn = isDarkThemeOn
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -61,7 +66,11 @@ class UserViewModel : ViewModel() {
         return userModel
     }
 
+    fun getUserDarkThemePreference(): Boolean{
+        return userModel.isDarkThemeOn
+    }
+
     fun resetUser(){
-        userModel = UserModel("", "", "",ByteArray(16))
+        userModel = UserModel("", "", "",ByteArray(16),false)
     }
 }

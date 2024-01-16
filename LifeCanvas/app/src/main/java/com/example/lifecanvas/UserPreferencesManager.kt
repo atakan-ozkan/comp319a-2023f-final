@@ -14,8 +14,9 @@ class UserPreferencesManager {
         val userJson = gson.toJson(userModel)
         editor.putString("UserData", userJson)
         editor.apply()
-
-        Toast.makeText(context, saveMessage, Toast.LENGTH_SHORT).show()
+        if(saveMessage != ""){
+            Toast.makeText(context, saveMessage, Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun loadData(userViewModel: UserViewModel, context: Context): Boolean {
@@ -27,7 +28,7 @@ class UserPreferencesManager {
         val userModel = gson.fromJson(userJson, UserModel::class.java)
         if (userModel != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                userViewModel.initUser(userModel.firstName,userModel.lastName,userModel.passwordHash)
+                userViewModel.initUser(userModel.firstName,userModel.lastName,userModel.passwordHash,userModel.isDarkThemeOn)
             }
             return true
         }

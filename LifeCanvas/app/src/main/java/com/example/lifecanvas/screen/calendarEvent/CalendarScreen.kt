@@ -31,24 +31,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lifecanvas.api.fetchHolidaysByYear
 import com.example.lifecanvas.model.EventModel
+import com.example.lifecanvas.model.HolidayModel
 import com.example.lifecanvas.screen.filter.DatePicker
 import com.example.lifecanvas.screen.filter.isValidTitle
 import com.example.lifecanvas.viewModel.EventViewModel
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarScreen(eventViewModel: EventViewModel,navController: NavController,context: Context) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    val currentYear = currentMonth.year.toString()
     val daysInMonth = getDaysInMonth(currentMonth)
     var showAddEventDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Remember the holidays for the current year
+    var holidays by remember { mutableStateOf<List<HolidayModel>>(emptyList()) }
+
+    // Fetch holidays when the year changes
+    LaunchedEffect(currentYear) {
+        coroutineScope.launch {
+            holidays = fetchHolidaysByYear(context,currentYear)
+        }
+    }
 
     Column {
         TopAppBar(
@@ -85,8 +102,13 @@ fun CalendarScreen(eventViewModel: EventViewModel,navController: NavController,c
 
                 val eventStartCount by eventViewModel.getEventStartCountForDay(startDate,endDate).observeAsState(0)
                 val eventEndCount by eventViewModel.getEventEndCountForDay(startDate,endDate).observeAsState(0)
+                val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val formattedDate = formatter.format(startDate)
 
-                val eventCount = eventStartCount + eventEndCount
+                val holidayCount = holidays.count { it.date == formattedDate }
+
+
+                val eventCount = eventStartCount + eventEndCount + holidayCount
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     DayCard(day = daysInMonth[index], eventCount = eventCount,
@@ -110,7 +132,7 @@ fun CalendarScreen(eventViewModel: EventViewModel,navController: NavController,c
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DayCard(day: LocalDate,eventCount: Int,onClick: () -> Unit) {
+fun DayCard(day: LocalDate,eventCount:Int,onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(5.dp)
