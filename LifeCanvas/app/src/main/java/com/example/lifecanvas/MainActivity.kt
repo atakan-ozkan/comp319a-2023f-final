@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import com.example.lifecanvas.ui.theme.LifeCanvasTheme
 import com.example.lifecanvas.viewModel.EventViewModel
 import com.example.lifecanvas.viewModel.NoteViewModel
 import com.example.lifecanvas.viewModel.SketchViewModel
+import com.example.lifecanvas.viewModel.ThemeViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -50,6 +52,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var noteViewModel: NoteViewModel
     private lateinit var sketchViewModel: SketchViewModel
     private lateinit var eventViewModel: EventViewModel
+    private lateinit var themeViewModel: ThemeViewModel
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,19 +62,28 @@ class MainActivity : ComponentActivity() {
         val noteRepository = NoteRepository(db.noteDao())
         val sketchRepository = SketchRepository(db.sketchDao())
         val eventRepository = EventRepository(db.eventDao())
+        isUserValid = userPreferencesManager.loadData(userViewModel,this)
         noteViewModel = NoteViewModel(noteRepository)
         sketchViewModel = SketchViewModel(sketchRepository)
         eventViewModel = EventViewModel(eventRepository)
+        themeViewModel = ThemeViewModel(userViewModel)
         setContent {
-            LifeCanvasTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    isUserValid = userPreferencesManager.loadData(userViewModel,this)
-                    NavigateStartApp(
-                        isUserValid = isUserValid,this)
-                }
+            LifeCanvasApp()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Composable
+    fun LifeCanvasApp(){
+        val darkThemeEnabled by themeViewModel.darkThemeEnabled.observeAsState(
+            initial = false)
+        LifeCanvasTheme(darkTheme = darkThemeEnabled) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                NavigateStartApp(
+                    isUserValid = isUserValid,this)
             }
         }
     }
@@ -88,7 +101,7 @@ class MainActivity : ComponentActivity() {
         NavHost(navController = navController, startDestination = startDestination) {
             composable("welcomeScreen") { WelcomeScreen(navController) }
             composable("registerScreen") { RegisterScreen(navController, userViewModel,userPreferencesManager,context) }
-            composable("mainScreen"){ MainScreen(navController, userViewModel,noteViewModel,userPreferencesManager,context) }
+            composable("mainScreen"){ MainScreen(navController, userViewModel,noteViewModel,userPreferencesManager,themeViewModel,context) }
             composable("notesScreen"){ NotesScreen(noteViewModel,userViewModel,navController) }
             composable("noteDetailScreen/{noteId}") { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull() ?: return@composable
