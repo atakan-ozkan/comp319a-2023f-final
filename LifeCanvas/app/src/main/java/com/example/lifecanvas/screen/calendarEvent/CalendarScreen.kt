@@ -57,10 +57,8 @@ fun CalendarScreen(eventViewModel: EventViewModel,navController: NavController,c
     var showAddEventDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Remember the holidays for the current year
     var holidays by remember { mutableStateOf<List<HolidayModel>>(emptyList()) }
-
-    // Fetch holidays when the year changes
+    
     LaunchedEffect(currentYear) {
         coroutineScope.launch {
             holidays = fetchHolidaysByYear(context,currentYear)
