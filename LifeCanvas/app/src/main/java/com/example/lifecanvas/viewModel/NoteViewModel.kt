@@ -4,9 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifecanvas.helper.deleteBitmapFile
 import com.example.lifecanvas.model.NoteModel
 import com.example.lifecanvas.repository.NoteRepository
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Date
 
 class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
@@ -46,21 +48,31 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         return liveData
     }
 
+    fun deleteAllFilesInPath(){
+
+    }
+
     fun deleteAllNotes() {
         viewModelScope.launch {
             repository.deleteAllNotes()
         }
     }
 
-    fun deletePublicNotes() {
+    fun deleteAllFilesInNotes() {
         viewModelScope.launch {
-            repository.deletePublicNotes()
-        }
-    }
-
-    fun deletePrivateNotes() {
-        viewModelScope.launch {
-            repository.deletePrivateNotes()
+            val notes = repository.getAllNotes()
+            notes.forEach { note ->
+                when (note.type) {
+                    "Image" -> {
+                        note.filePath?.let { deleteBitmapFile(it) }
+                    }
+                    "Voice" -> {
+                        note.filePath?.let { File(it).delete() }
+                    }
+                    else -> {
+                    }
+                }
+            }
         }
     }
 

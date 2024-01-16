@@ -24,18 +24,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.lifecanvas.api.getHolidayForDay
 import com.example.lifecanvas.model.EventModel
+import com.example.lifecanvas.model.HolidayModel
 import com.example.lifecanvas.viewModel.EventViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -46,12 +51,20 @@ import java.util.Date
 @Composable
 fun DayDetailScreen(day: LocalDate, eventViewModel: EventViewModel, navController: NavController,context: Context) {
     var showAddEventDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    var holidays by remember { mutableStateOf<List<HolidayModel>>(emptyList()) }
     val startOfDay = day.atStartOfDay(ZoneId.systemDefault())
     val endOfDay = day.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault())
     val startDate = Date.from(startOfDay.toInstant())
     val endDate = Date.from(endOfDay.toInstant())
     val eventsStartDay by eventViewModel.getEventsStartForDay(startDate, endDate).observeAsState(initial = emptyList())
     val eventsEndDay by eventViewModel.getEventsEndForDay(startDate, endDate).observeAsState(initial = emptyList())
+
+    LaunchedEffect(day) {
+        coroutineScope.launch {
+            holidays = getHolidayForDay(context, startDate)
+        }
+    }
 
     Column {
         TopAppBar(
@@ -69,6 +82,9 @@ fun DayDetailScreen(day: LocalDate, eventViewModel: EventViewModel, navControlle
         )
 
         LazyColumn {
+            items(holidays) { holiday ->
+                HolidayCard(holiday)
+            }
             items(eventsStartDay) { event ->
                 EventCard(event = event, label = "Event Start",navController)
             }
@@ -110,6 +126,19 @@ fun EventCard(event: EventModel, label: String,navController: NavController) {
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun HolidayCard(holiday: HolidayModel) {
+    Card(modifier = Modifier
+        .padding(8.dp)
+        .fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = "Holiday: ${holiday.name}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+            Text(text = "Local Name: ${holiday.localName}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Date: ${holiday.date}", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
