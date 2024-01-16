@@ -167,6 +167,6 @@ The sketches are autmatically saved when navigate back. The file path is also ch
 
 
 
-*** This was the brief description of the project ***
+*** This is the brief description of the project ***
 
 
